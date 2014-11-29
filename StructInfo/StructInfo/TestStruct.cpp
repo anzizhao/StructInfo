@@ -2,7 +2,7 @@
 #include "Core.h"
 
 
-#include "StructSize.h"
+//#include "StructSize.h"
 
 
 void TestPrint(vector<TypeInfo> &TypeData)
@@ -87,9 +87,9 @@ int main()
 	{
 		return 0; 
 	}
-	//WirteFile(vStructData); 
-	//TestPrint(vStructData); 
-	string strFind("NET_DVR_CLOUDSTORAGE_COND"); 
+	WirteFile(vStructData); 
+	TestPrint(vStructData); 
+	/*string strFind("NET_DVR_CLOUDSTORAGE_COND"); 
 	unsigned int uiLenStructSize = sizeof(dwStructSize)/sizeof(dwStructSize[0]); 
 	unsigned int uiLenStructName = sizeof(StructName)/sizeof(StructName[0]); 
 	assert(uiLenStructSize == uiLenStructName); 
@@ -101,8 +101,8 @@ int main()
 			cout << StructName[i] << ":" << dwStructSize[i] << endl; 
 			break; 
 		}
-	}
-	cin>>iNum; 
+	}*/
+//	cin>>iNum; 
 	delete [] p ; 
 	return 0; 
 }
