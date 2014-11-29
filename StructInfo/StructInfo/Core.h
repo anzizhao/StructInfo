@@ -23,6 +23,7 @@ public:
 	string strName;        //对象名， 结构体可以没有
 	short  sSubItemNum;    //子项数量 为0表示没有子项
 	vector<TypeInfo> SubItem; //子项
+	TypeInfo(){ sSubItemNum = 0;  }
 };
 
 
@@ -36,6 +37,9 @@ bool CopyWord( char *pSrcHead,  char* pSrcTail, string &dst); //复制单词
 bool strchrInMen( char *pS,  char* pT, char c);  //在一段内存内  查找某个字符是否存在
 bool strstrInMen( char *pS,  char* pT,  char* str); //在一段内存内  查找某个字符串是否存在
 
+//分析单个结构体
+bool AnalyseStruct(char *src, vector<TypeInfo>& result); 
+char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo & result);
 
 //字母识别相关
 inline bool IsBigAlpha(char c)

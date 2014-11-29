@@ -125,10 +125,17 @@ bool AnalyseStrtoStruct(char *szStructStr, vector<TypeInfo>& vStructData)
 //获取一行 如果找到 pLTail返回行尾  
 bool GetLine( char *szSrc,  char *&pLTail )
 {
+	if (strlen(szSrc) == 1)
+	{
+		//只有一个为文件末尾
+		return false; 
+	}
 	char *pTemp = szSrc; 
 	if (!(pTemp = ( char *)strchr((char *)pTemp, '\n')) )
 	{
-		return false; 
+		//文件末尾   应该返回真 处理最后一行
+		pLTail = szSrc + strlen(szSrc); 
+		return true; 
 	}
 	pLTail = pTemp; 
 	try
@@ -233,4 +240,130 @@ bool strstrInMen( char *pS,  char* pT,  char* str)
 	{
 		return false; 
 	}
+}
+
+bool AnalyseStruct(char *src, vector<TypeInfo>& szStructStr)
+{
+	char *pTemp = src;
+	char *pReturn = NULL; 
+	unsigned int dwStrLen = strlen(src); 
+	while((pTemp = strstr(pTemp, "struct")) != NULL)
+	{
+		TypeInfo typeTemp; 
+		pReturn = AnalyseStruct(pTemp, src+dwStrLen, typeTemp ); 
+		if ( ! pReturn)
+		{
+			break; 
+		}
+		szStructStr.push_back(typeTemp); 
+		pTemp = pReturn ; 
+	}
+	return true; 
+}
+
+
+
+char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo& vStructData)
+{
+	char* pWHead, *pWTail; 
+	GetWord(pFirst, pEnd, pWHead, pWTail); 
+	string strTemp; 
+	CopyWord(pWHead, pWTail,strTemp); 
+	//判断第一单词非struct 或 union，返回错误
+	if (strTemp != "struct" && strTemp != "union" )
+	{
+		return NULL; 
+	}
+	char *pTemp = pFirst; 
+	char *pLineTail = NULL; 
+	//寻找{ 
+	if (!(pTemp = strchr(pTemp, '{')) )
+	{
+		return NULL; 
+	}
+	TypeInfo struTypeInfo;
+	//开始一行一行处理
+	while( pTemp < pEnd && GetLine(pTemp,  pLineTail)   )
+	{
+		char *pFirstChar =  GetNoneNullChar(pTemp, pLineTail); 
+		if (!pFirstChar)
+		{
+			pTemp = pLineTail + 1; 
+			continue; 
+		}	
+		char cFirstChar = *pFirstChar; 
+		if (cFirstChar == '/')
+		{
+			char cSecondChar = *(pFirstChar+1);
+			if (cSecondChar == '*')
+			{
+				//查找"*/"去掉  整行
+				pTemp = strstr(pTemp, "*/");
+				assert(pTemp); 				
+				pTemp = strchr(pTemp+2, '\n'); 
+				assert(pTemp); 
+				pTemp ++; 
+				continue; 
+			}
+		//其他 整行去掉 不处理
+		}
+		//第一个字符为字母或_， 可能是一个类型
+		else if (IsAlpha(cFirstChar) || cFirstChar == '_')
+		{
+			//获取类型
+			assert(GetWord(pFirstChar, pLineTail, pWHead, pWTail)); 
+			TypeInfo typeTemp; 
+			typeTemp.sSubItemNum = 0; 
+			assert(CopyWord(pWHead, pWTail,typeTemp.strType));
+			//如果是union 或者struct     
+			if (typeTemp.strType == "union" || typeTemp.strType == "struct")
+			{
+				char * pStructEnd = NULL; 
+				if( (pStructEnd = AnalyseStruct(pWHead, pEnd, typeTemp)) )
+				{
+					struTypeInfo.SubItem.push_back(typeTemp); 
+					struTypeInfo.sSubItemNum ++; 
+					pTemp = pStructEnd; 
+					continue; 
+				}
+				else 
+					assert(false); 
+			}			
+			//获取对象
+			pWHead =  GetNoneNullChar(pWTail+1, pLineTail); 
+			assert(GetWord(pWHead, pLineTail, pWHead, pWTail)); 
+			assert(CopyWord(pWHead, pWTail,typeTemp.strName)); 		
+		
+			struTypeInfo.SubItem.push_back(typeTemp); 
+			struTypeInfo.sSubItemNum ++; 
+			//查找}是否存在
+			if (strchrInMen( pWTail+1,  pLineTail, '}') )
+			{
+
+			}
+			else if(strstrInMen(pWTail+1, pLineTail, "/*"))
+			{
+				//'/*'注释在行后， 寻找*/跳过
+				//查找"*/"去掉  整行
+				pTemp = strstr(pTemp, "*/");
+				assert(pTemp); 				
+				pTemp = strchr(pTemp+2, '\n'); 
+				assert(pTemp); 
+				pTemp ++; 
+				continue; 
+			}
+		}
+		else if (cFirstChar == '}')
+		{
+			assert(GetWord(pFirstChar, pLineTail, pWHead, pWTail)); 
+			assert(CopyWord(pWHead, pWTail, struTypeInfo.strType)); 
+			//if ( !IsStrHasSmallAlpha(pWHead, pWTail-pWHead+1) )
+			//{
+			vStructData = struTypeInfo;
+			/*}*/
+			return pLineTail; 
+		}
+		pTemp = pLineTail + 1; 
+	}
+	return NULL; 
 }

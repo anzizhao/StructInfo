@@ -65,44 +65,62 @@ void WirteFile(vector<TypeInfo> &TypeData)
 	fprintf(fp,"%s",  csWStrutSize.c_str()); 
 	fclose(fp);
 }
-
+void PrintStruct(TypeInfo &item)
+{
+	cout << item.strType << " " << item.strName << endl; 
+	if ( ! item.sSubItemNum )
+	{
+		return ; 
+	}
+	cout << "Item Number: " << item.sSubItemNum << endl; 
+	vector<TypeInfo>::iterator iter = item.SubItem.begin(); 
+	while (iter != item.SubItem.end())
+	{
+		PrintStruct(*iter); 
+		++ iter; 
+	}
+}
+void TestNestStruct(vector<TypeInfo> &data)
+{
+	//打印NET_DVR_ALARMINFO_FIXED_HEADER 结构体信息
+	vector<TypeInfo>::iterator iter = data.begin(); 
+	while (iter != data.end() )
+	{
+		if (iter->strType ==  string("NET_DVR_ALRAM_FIXED_HEADER"))
+		{
+			//迭代打印
+			PrintStruct(*iter); 
+			return; 
+		}
+		++ iter ; 
+	}
+}
 
 
 int main()
 {
 	FILE *fp; 
-	fp = fopen("HCNetSDK.h", "r");
+	fp = fopen("HCNetSDK.h", "rb");
 	assert(fp); 
 	int iNum ; 
-	fseek(fp, 0, 2);
+	fseek(fp, 0L, 2);
 	iNum = ftell(fp); 
 	rewind(fp);
-	char *p = new char[iNum+2]; 
+	char *p = new char[iNum+2000]; 
 	p[iNum] = 0; 
 	p[iNum+1] = 0; 
-	fread(p, 1, iNum, fp);
+	fread(p, 1, iNum+2000, fp);
 	fclose(fp);
 	vector<TypeInfo>  vStructData; 
-	if (! AnalyseStrtoStruct(p, vStructData))
+	if (! AnalyseStruct(p, vStructData))
 	{
+		delete [] p ; 
 		return 0; 
 	}
-	WirteFile(vStructData); 
-	TestPrint(vStructData); 
-	/*string strFind("NET_DVR_CLOUDSTORAGE_COND"); 
-	unsigned int uiLenStructSize = sizeof(dwStructSize)/sizeof(dwStructSize[0]); 
-	unsigned int uiLenStructName = sizeof(StructName)/sizeof(StructName[0]); 
-	assert(uiLenStructSize == uiLenStructName); 
-	for (int i = 0; i < uiLenStructName; i++)
-	{
-
-		if (strcmp(strFind.c_str(),StructName[i]) == 0)
-		{
-			cout << StructName[i] << ":" << dwStructSize[i] << endl; 
-			break; 
-		}
-	}*/
-//	cin>>iNum; 
+//	WirteFile(vStructData); 
+//	TestPrint(vStructData); 
+	TestNestStruct(vStructData); 
+	cin>>iNum; 
 	delete [] p ; 
 	return 0; 
 }
