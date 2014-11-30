@@ -242,15 +242,20 @@ bool strstrInMen( char *pS,  char* pT,  char* str)
 	}
 }
 
-bool AnalyseStruct(char *src, vector<TypeInfo>& szStructStr)
+bool AnalyseStruct(char *pMemStart, vector<TypeInfo>& szStructStr)
 {
-	char *pTemp = src;
+	char *pTemp = pMemStart;
 	char *pReturn = NULL; 
-	unsigned int dwStrLen = strlen(src); 
+	unsigned int dwStrLen = strlen(pMemStart); 
 	while((pTemp = strstr(pTemp, "struct")) != NULL)
 	{
 		TypeInfo typeTemp; 
-		pReturn = AnalyseStruct(pTemp, src+dwStrLen, typeTemp ); 
+		string strLastWord = LastWord(pMemStart, pTemp); 	
+		if (strLastWord == "typedef")
+		{
+			typeTemp.SetTypedefFlag(); 
+		}
+		pReturn = AnalyseStruct(pTemp, pMemStart+dwStrLen, typeTemp ); 
 		if ( ! pReturn)
 		{
 			break; 
@@ -281,7 +286,7 @@ char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo& vStructData)
 	{
 		return NULL; 
 	}
-	TypeInfo struTypeInfo;
+	TypeInfo struTypeInfo = vStructData;
 	//开始一行一行处理
 	while( pTemp < pEnd && GetLine(pTemp,  pLineTail)   )
 	{
@@ -355,8 +360,8 @@ char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo& vStructData)
 		}
 		else if (cFirstChar == '}')
 		{
-			assert(GetWord(pFirstChar, pLineTail, pWHead, pWTail)); 
-			assert(CopyWord(pWHead, pWTail, struTypeInfo.strType)); 
+			assert(GetWord(pFirstChar, pLineTail, pWHead, pWTail));
+			assert(CopyWord(pWHead, pWTail, struTypeInfo.GetTypeOrName())); 
 			//if ( !IsStrHasSmallAlpha(pWHead, pWTail-pWHead+1) )
 			//{
 			vStructData = struTypeInfo;
@@ -366,4 +371,33 @@ char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo& vStructData)
 		pTemp = pLineTail + 1; 
 	}
 	return NULL; 
+}
+
+//查找上一个单词
+string LastWord(char *pFirst,  char *pFindPos)
+{
+	if (pFindPos < pFirst)
+	{
+		return string(); 
+	}
+	//查找上一个单词的结尾 
+	char *pTemp = pFindPos-1; 
+	while (pTemp >=  pFirst && !(IsAlnum(*pTemp) || *pTemp == '_'))
+	{
+		pTemp --; 
+	}
+	if (pTemp <  pFirst)
+	{
+		return string(); 
+	}
+	char *pWordTail = pTemp; 
+	//查找上一个单词的开始
+	while ((IsAlnum(*pTemp) || *pTemp == '_'))
+	{
+		pTemp --; 
+	}
+	char *pWordHead =  pTemp+1; 
+	string strWord; 
+	CopyWord(pWordHead, pWordTail, strWord); 
+	return strWord; 
 }

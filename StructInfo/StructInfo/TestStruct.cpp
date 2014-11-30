@@ -80,6 +80,24 @@ void PrintStruct(TypeInfo &item)
 		++ iter; 
 	}
 }
+
+void PrintStruct(TypeInfo &item)
+{
+	cout << item.strType << " " << item.strName << endl; 
+	if ( ! item.sSubItemNum )
+	{
+
+		return ; 
+	}
+	cout << "Item Number: " << item.sSubItemNum << endl; 
+	vector<TypeInfo>::iterator iter = item.SubItem.begin(); 
+	while (iter != item.SubItem.end())
+	{
+		PrintStruct(*iter); 
+		++ iter; 
+	}
+}
+
 void TestNestStruct(vector<TypeInfo> &data)
 {
 	//打印NET_DVR_ALARMINFO_FIXED_HEADER 结构体信息

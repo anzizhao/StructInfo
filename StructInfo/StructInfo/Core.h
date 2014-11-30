@@ -23,7 +23,11 @@ public:
 	string strName;        //对象名， 结构体可以没有
 	short  sSubItemNum;    //子项数量 为0表示没有子项
 	vector<TypeInfo> SubItem; //子项
-	TypeInfo(){ sSubItemNum = 0;  }
+	TypeInfo():sSubItemNum(0), m_BFlag(0){}
+	void SetTypedefFlag(bool bSet=true){ m_BFlag = bSet ? 1 : 0 ; }
+	string& GetTypeOrName(){ return m_BFlag?strType:strName ; }
+private:
+	unsigned char m_BFlag;    //标志，bit0 为是struct前是否typedef ，判断最后是结构体名还是变量
 };
 
 
@@ -40,7 +44,7 @@ bool strstrInMen( char *pS,  char* pT,  char* str); //在一段内存内  查找某个字符
 //分析单个结构体
 bool AnalyseStruct(char *src, vector<TypeInfo>& result); 
 char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo & result);
-
+string LastWord(char *pFirst, char *pFindPos);  //查找上一个单词 
 //字母识别相关
 inline bool IsBigAlpha(char c)
 {
