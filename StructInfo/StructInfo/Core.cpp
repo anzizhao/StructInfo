@@ -247,20 +247,23 @@ bool AnalyseStruct(char *pMemStart, vector<TypeInfo>& szStructStr)
 	char *pTemp = pMemStart;
 	char *pReturn = NULL; 
 	unsigned int dwStrLen = strlen(pMemStart); 
-	while((pTemp = strstr(pTemp, "struct")) != NULL)
+	while((pTemp = strstr(pTemp, "typedef")) != NULL)
 	{
 		TypeInfo typeTemp; 
-		string strLastWord = LastWord(pMemStart, pTemp); 	
+	/*	string strLastWord = LastWord(pMemStart, pTemp); 	
 		if (strLastWord == "typedef")
-		{
+		{*/
 			typeTemp.SetTypedefFlag(); 
-		}
-		pReturn = AnalyseStruct(pTemp, pMemStart+dwStrLen, typeTemp ); 
+//		}
+		pReturn = AnalyseStruct(pTemp+sizeof("typedef"), pMemStart+dwStrLen, typeTemp ); 
 		if ( ! pReturn)
 		{
-			break; 
+			//找不到，跳过，准备找下一个typedef
+			pReturn = pTemp+sizeof("typedef"); 
 		}
-		szStructStr.push_back(typeTemp); 
+		else
+			//分析成功， 添加 
+			szStructStr.push_back(typeTemp); 
 		pTemp = pReturn ; 
 	}
 	return true; 
@@ -275,7 +278,7 @@ char * AnalyseStruct(char *pFirst,  char *pEnd, TypeInfo& vStructData)
 	string strTemp; 
 	CopyWord(pWHead, pWTail,strTemp); 
 	//判断第一单词非struct 或 union，返回错误
-	if (strTemp != "struct" && strTemp != "union" )
+	if (strTemp != "struct" && strTemp != "union" /*&& strTemp != "enum"*/)
 	{
 		return NULL; 
 	}
