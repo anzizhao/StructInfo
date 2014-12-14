@@ -141,7 +141,7 @@ int main()
 	cout << "输入分析文件路径： " ; 
 	string strFilePath; 
 	cin >> strFilePath; 
-	fp = fopen("HCNetSDK.h", "rb");
+	fp = fopen(strFilePath.c_str(), "rb");
 	assert(fp); 
 	int iNum ; 
 	fseek(fp, 0L, 2);
@@ -157,7 +157,7 @@ int main()
 		delete [] p ; 
 		return 0; 
 	}
-	WirteFile(vStructData); 
+	WirteFile(vStructData, strFilePath); 
 //	TestPrint(vStructData); 
 //	TestNestStruct(vStructData); 
 //	cin>>iNum; 
